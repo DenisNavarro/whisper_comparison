@@ -1,0 +1,6 @@
+
+target/
+whisper_burn_data/
+whisper_cpp_data/
+clippy.maketarget
+fmt.maketarget
