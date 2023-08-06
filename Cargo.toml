@@ -1,6 +1,6 @@
 [package]
 name = "whisper_comparison"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 
 [dependencies]
@@ -8,6 +8,7 @@ anyhow = { version = "1", features = ["backtrace"] }
 audrey = { version = "0.3", default-features = false, features = ["wav"] }
 burn = "0.8"
 burn-wgpu = "0.8"
+camino = "1"
 clap = { version = "4", features = ["derive"] }
 hound = "3.5"
 num = "0.4"

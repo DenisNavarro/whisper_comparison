@@ -1,6 +1,6 @@
 #![forbid(unsafe_code)]
-//#![warn(clippy::pedantic, clippy::nursery)] // TODO: add this line
-#![allow(clippy::all, clippy::nursery, clippy::pedantic)] // TODO: remove this line
+#![warn(clippy::pedantic, clippy::nursery)]
+#![allow(clippy::missing_errors_doc)]
 
 use clap::{Parser, Subcommand};
 
@@ -39,9 +39,9 @@ fn main() -> anyhow::Result<()> {
 
 fn call_whisper_burn() {
     // Debug:
-    // thread 'main' panicked at 'attempt to subtract with overflow', src/whisper_burn/transcribe.rs:110:20
+    // thread 'main' panicked at 'attempt to subtract with overflow', src/whisper_burn/transcribe.rs:98:20
     // Release:
-    // thread 'main' panicked at 'slice index starts at 172409 but ends at 168511', src/whisper_burn/transcribe.rs:116:22
+    // thread 'main' panicked at 'slice index starts at 172409 but ends at 168511', src/whisper_burn/transcribe.rs:104:22
     crash("whisper_burn_data/audio.wav", "whisper_burn_data/tiny");
 }
 

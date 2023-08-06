@@ -1,7 +1,5 @@
-#![allow(dead_code)]
-
 use num::integer::div_floor;
-use std::{fs::File, io::Write, path::PathBuf};
+use std::{fs::File, io::Write};
 
 pub fn format_timestamp(seconds: i64, always_include_hours: bool, decimal_marker: &str) -> String {
     assert!(seconds >= 0, "non-negative timestamp expected");
@@ -22,6 +20,6 @@ pub fn format_timestamp(seconds: i64, always_include_hours: bool, decimal_marker
     format!("{hours_marker}{minutes:02}:{seconds:02}{decimal_marker}{milliseconds:03}")
 }
 
-pub fn write_to(path: PathBuf, content: &String) {
+pub fn write_to(path: &str, content: &String) {
     File::create(path).unwrap().write_all(content.as_bytes()).unwrap();
 }

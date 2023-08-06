@@ -6,9 +6,8 @@ mod transcript;
 mod utils;
 mod whisper;
 
-use std::path::Path;
-
-use anyhow::bail;
+use anyhow::{bail, ensure, Context};
+use camino::Utf8PathBuf;
 
 use model::{Model, Size};
 use transcript::Transcript;
@@ -23,7 +22,7 @@ pub struct Args {
     pub lang: Option<Language>,
 
     /// Path to the audio file to transcribe
-    pub audio: String,
+    pub audio: Utf8PathBuf,
 
     /// Toggle translation
     pub translate: bool,
@@ -33,15 +32,15 @@ pub struct Args {
 }
 
 pub fn work(args: Args) -> anyhow::Result<()> {
-    let audio = Path::new(&args.audio);
-    let file_name = audio.file_name().unwrap().to_str().unwrap();
-    assert!(audio.exists(), "The provided audio file does not exist.");
+    let audio = args.audio;
+    let file_name = audio.file_name().with_context(|| format!("{audio:?} does not have a name"))?;
+    ensure!(audio.exists(), "The provided audio file does not exist.");
     let mut audio_transcripter =
         AudioTranscripter::new(args.model, args.lang, args.translate, args.karaoke)?;
-    let transcript = audio_transcripter.transcript(&args.audio)?;
-    write_to(audio.with_file_name(format!("{file_name}.txt")), &transcript.as_text());
-    write_to(audio.with_file_name(format!("{file_name}.vtt")), &transcript.as_vtt());
-    write_to(audio.with_file_name(format!("{file_name}.srt")), &transcript.as_srt());
+    let transcript = audio_transcripter.transcript(audio.as_ref())?;
+    write_to(audio.with_file_name(format!("{file_name}.txt")).as_ref(), &transcript.as_text());
+    write_to(audio.with_file_name(format!("{file_name}.vtt")).as_ref(), &transcript.as_vtt());
+    write_to(audio.with_file_name(format!("{file_name}.srt")).as_ref(), &transcript.as_srt());
     println!("time: {:?}", transcript.processing_time);
     Ok(())
 }

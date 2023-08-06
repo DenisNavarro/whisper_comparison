@@ -25,12 +25,14 @@ pub enum Size {
 }
 
 impl Size {
+    #[must_use]
     pub fn get_path(self) -> PathBuf {
         let mut path = PathBuf::from("whisper_cpp_data");
         path.push(format!("{self}.bin"));
         path
     }
 
+    #[must_use]
     pub const fn is_english_only(self) -> bool {
         matches!(
             self,
@@ -63,10 +65,12 @@ pub struct Model {
 }
 
 impl Model {
+    #[must_use]
     pub const fn new(size: Size) -> Self {
         Self { size }
     }
 
+    #[must_use]
     pub fn get_path(&self) -> PathBuf {
         self.size.get_path()
     }

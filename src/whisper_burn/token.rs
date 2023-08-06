@@ -1,7 +1,9 @@
+#![allow(clippy::cast_lossless, clippy::cast_possible_truncation, clippy::module_name_repetitions)]
+
 use serde::ser::StdError;
 use std::result;
 
-use tokenizers::{AddedToken, Tokenizer};
+use tokenizers::AddedToken;
 
 pub type Result<T> = result::Result<T, Box<(dyn StdError + Send + Sync + 'static)>>;
 
@@ -17,25 +19,12 @@ impl Gpt2Tokenizer {
         Ok(Self { tokenizer })
     }
 
-    pub fn encode(&self, text: &str) -> Vec<usize> {
-        let tokens = self.tokenizer.encode(text, true).unwrap();
-        tokens.get_ids().iter().map(|t| *t as usize).collect()
-    }
-
     pub fn special_token(&self, token: SpecialToken) -> Option<usize> {
         self.tokenizer.token_to_id(&token.to_string()).map(|t| t as usize)
     }
 
     pub fn decode(&self, tokens: &[usize], skip_special: bool) -> Result<String> {
         self.tokenizer.decode(tokens.iter().map(|t| *t as u32).collect(), skip_special)
-    }
-
-    pub fn is_special(&self, token: usize) -> bool {
-        self.tokenizer.decode(vec![token as u32], true).ok().map(|s| s.is_empty()).unwrap_or(false)
-    }
-
-    pub fn vocab_size(&self) -> usize {
-        self.tokenizer.get_vocab_size(true)
     }
 }
 
@@ -49,40 +38,27 @@ const LANGUAGES: [&str; 98] = [
     "jw", "su",
 ];
 
+#[derive(Copy, Clone)]
 pub enum SpecialToken {
     EndofText,
     StartofTranscript,
-    Translate,
     Transcribe,
-    StartofLM,
-    StartofPrev,
-    NoSpeech,
-    NoTimeStamps,
-    Language(String),
     Timestamp(f64),
 }
 
 impl ToString for SpecialToken {
     fn to_string(&self) -> String {
         match self {
-            SpecialToken::EndofText => "<|endoftext|>".into(),
-            SpecialToken::StartofTranscript => "<|startoftranscript|>".into(),
-            SpecialToken::Translate => "<|translate|>".into(),
-            SpecialToken::Transcribe => "<|transcribe|>".into(),
-            SpecialToken::StartofLM => "<|startoflm|>".into(),
-            SpecialToken::StartofPrev => "<|startofprev|>".into(),
-            SpecialToken::NoSpeech => "<|nospeech|>".into(),
-            SpecialToken::NoTimeStamps => "<|notimestamps|>".into(),
-            SpecialToken::Language(lang) => format!("<|{}|>", lang),
-            SpecialToken::Timestamp(val) => format!("<|{:.2}|>", val),
+            Self::EndofText => "<|endoftext|>".into(),
+            Self::StartofTranscript => "<|startoftranscript|>".into(),
+            Self::Transcribe => "<|transcribe|>".into(),
+            Self::Timestamp(val) => format!("<|{val:.2}|>"),
         }
     }
 }
 
 fn construct_special_tokens() -> Vec<AddedToken> {
     const SPEC1: [&str; 2] = ["<|endoftext|>", "<|startoftranscript|>"];
-
-    let lang_keys = LANGUAGES.iter().map(|lang| format!("<|{}|>", lang));
 
     const SPEC2: [&str; 6] = [
         "<|translate|>",
@@ -93,8 +69,9 @@ fn construct_special_tokens() -> Vec<AddedToken> {
         "<|notimestamps|>",
     ];
 
-    let range_keys =
-        (0..1501).into_iter().map(|i| i as f64 * 0.02).map(|f| format!("<|{:.2}|>", f));
+    let lang_keys = LANGUAGES.iter().map(|lang| format!("<|{lang}|>"));
+
+    let range_keys = (0..1501).map(|i| i as f64 * 0.02).map(|f| format!("<|{f:.2}|>"));
 
     SPEC1
         .into_iter()

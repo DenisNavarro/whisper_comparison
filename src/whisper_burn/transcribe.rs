@@ -1,20 +1,14 @@
-#![allow(clippy::all, clippy::nursery, clippy::pedantic)]
+#![allow(clippy::cast_precision_loss, clippy::range_plus_one)]
 
 use crate::whisper_burn::audio::{max_waveform_samples, prep_audio};
-use crate::whisper_burn::helper::*;
-use crate::whisper_burn::model::*;
-use crate::whisper_burn::token::{self, *};
+use crate::whisper_burn::model::Whisper;
+use crate::whisper_burn::token::{self, Gpt2Tokenizer, SpecialToken};
 
 use num_traits::ToPrimitive;
 
 use burn::{
-    config::Config,
     module::Module,
-    tensor::{
-        self,
-        backend::{self, Backend},
-        Data, Float, Int, Tensor,
-    },
+    tensor::{self, backend::Backend, Data, Tensor},
 };
 
 pub fn waveform_to_text<B: Backend>(
@@ -36,13 +30,7 @@ pub fn waveform_to_text<B: Backend>(
     let mut tokens: Vec<usize> = Vec::new();
 
     for (i, mel) in mel_iter.enumerate() {
-        let mut prev_normal_tokens: Vec<_> =
-            tokens.iter().rev().filter(|&&t| !bpe.is_special(t)).cloned().take(5).collect();
-        prev_normal_tokens.reverse();
-        //println!("Prev tokens: {:?} {}", prev_normal_tokens, bpe.decode(&prev_normal_tokens[..], false)?);
-
-        let (new_text, new_tokens) =
-            mels_to_text(whisper, bpe, mel, &prev_normal_tokens[..], padding)?;
+        let (_new_text, new_tokens) = mels_to_text(whisper, bpe, mel, padding)?;
 
         if let Some((prev_index, curr_index)) =
             find_chunk_overlap(&tokens[..], &new_tokens[..], 40, 3)
@@ -54,7 +42,7 @@ pub fn waveform_to_text<B: Backend>(
         }
 
         text = bpe.decode(&tokens[..], true)?;
-        println!("Chunk {}: {}\n", i, text);
+        println!("Chunk {i}: {text}\n");
 
         //text += &new_text;
     }
@@ -87,7 +75,7 @@ fn find_chunk_overlap(
 
             let curr_overlap_index = overlap_iter.next().unwrap().0;
             let prev_overlap_index = prev_start_index + curr_overlap_index;
-            max_overlap_indices = (prev_overlap_index, curr_overlap_index)
+            max_overlap_indices = (prev_overlap_index, curr_overlap_index);
         }
     }
 
@@ -109,7 +97,7 @@ fn waveform_to_mel_tensor<B: Backend>(
     let shift = n_samples_per_tensor - chunk_overlap;
     let iter_len = (waveform.len() - n_samples_per_tensor) / shift + 1;
 
-    (0..iter_len).into_iter().map(move |i| {
+    (0..iter_len).map(move |i| {
         let start = i * shift;
         let end = (start + n_samples_per_tensor).min(waveform.len());
 
@@ -118,9 +106,7 @@ fn waveform_to_mel_tensor<B: Backend>(
         let waveform = Tensor::from_floats(tensor::Data::new(slice.to_vec(), [slice.len()].into()))
             .to_device(&device);
 
-        let mels = prep_audio(waveform.unsqueeze(), sample_rate as f64);
-
-        mels
+        prep_audio(waveform.unsqueeze(), sample_rate as f64)
     })
 }
 
@@ -128,7 +114,6 @@ fn mels_to_text<B: Backend>(
     whisper: &Whisper<B>,
     bpe: &Gpt2Tokenizer,
     mels: Tensor<B, 3>,
-    prev_normal_tokens: &[usize],
     padding: usize,
 ) -> token::Result<(String, Vec<usize>)> {
     let device = mels.device();
@@ -136,7 +121,7 @@ fn mels_to_text<B: Backend>(
     let n_ctx_max_encoder = whisper.encoder_ctx_size();
     let n_ctx_max_decoder = whisper.decoder_ctx_size();
 
-    let [n_channel, n_mel, n_ctx] = mels.dims();
+    let [_n_channel, n_mel, n_ctx] = mels.dims();
     if n_ctx + padding > n_ctx_max_encoder {
         println!(
             "Audio has length of {} which exceeds maximum length {}. It will be clipped.",
@@ -156,7 +141,6 @@ fn mels_to_text<B: Backend>(
 
     let start_token = bpe.special_token(SpecialToken::StartofTranscript).unwrap();
     let transcription_token = bpe.special_token(SpecialToken::Transcribe).unwrap();
-    let start_of_prev_token = bpe.special_token(SpecialToken::StartofPrev).unwrap();
     let first_timestamp_token = bpe.special_token(SpecialToken::Timestamp(0.0)).unwrap();
     let end_token = bpe.special_token(SpecialToken::EndofText).unwrap();
 
@@ -184,7 +168,7 @@ fn mels_to_text<B: Backend>(
 
         let out = whisper.forward_decoder(token_tensor, encoder_output.clone());
 
-        let [n_batch, n_token, n_dict] = out.dims();
+        let [_n_batch, n_token, _n_dict] = out.dims();
         let last_row: Tensor<B, 1> = out.slice([0..1, (n_token - 1)..n_token]).flatten(0, 2);
 
         let token_id = last_row.clone().argmax(0).into_scalar().to_usize().unwrap();
@@ -219,7 +203,7 @@ fn mels_to_text<B: Backend>(
 
     let text = bpe.decode(&tokens[..], true)?;
 
-    return Ok((text, tokens));
+    Ok((text, tokens))
 }
 
 fn find_repeated_tokens_index(
@@ -235,18 +219,16 @@ fn find_repeated_tokens_index(
     let last_index = tokens.len() - window_size;
     let last_window = &tokens[last_index..];
 
-    let sliding_windows = (0..=(last_index - window_size))
-        .into_iter()
-        .map(|i| &tokens[i..(i + window_size)])
-        .enumerate();
+    let sliding_windows =
+        (0..=(last_index - window_size)).map(|i| &tokens[i..(i + window_size)]).enumerate();
 
     let mut repeats = sliding_windows.filter(|(_, window)| window == &last_window);
 
     let n_repeats = repeats.clone().count();
     if n_repeats >= min_repeat_count {
         let first_repeat_index = repeats.next().unwrap().0;
-        return Some(first_repeat_index);
+        Some(first_repeat_index)
     } else {
-        return None;
-    };
+        None
+    }
 }

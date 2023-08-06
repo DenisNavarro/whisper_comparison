@@ -1,5 +1,3 @@
-#![allow(clippy::all, clippy::nursery, clippy::pedantic)]
-
 use burn::tensor::{
     activation::relu, backend::Backend, BasicOps, Bool, Element, Float, Int, Numeric, Tensor,
     TensorKind,
@@ -9,10 +7,6 @@ use num_traits::ToPrimitive;
 
 pub fn tensor_max_scalar<B: Backend, const D: usize>(x: Tensor<B, D>, max: f64) -> Tensor<B, D> {
     relu(x.sub_scalar(max)).add_scalar(max)
-}
-
-pub fn tensor_min_scalar<B: Backend, const D: usize>(x: Tensor<B, D>, min: f64) -> Tensor<B, D> {
-    -tensor_max_scalar(-x, -min)
 }
 
 pub fn tensor_max<B: Backend, const D: usize>(x: Tensor<B, D>, max: Tensor<B, D>) -> Tensor<B, D> {

@@ -1,4 +1,10 @@
-#![allow(clippy::all, clippy::nursery, clippy::pedantic)]
+#![allow(
+    clippy::cast_precision_loss,
+    clippy::needless_pass_by_value,
+    clippy::range_plus_one,
+    clippy::similar_names,
+    clippy::upper_case_acronyms
+)]
 
 use std::f32::NEG_INFINITY;
 
@@ -7,7 +13,7 @@ use burn::{
     module::{Module, Param},
     nn::{
         self,
-        conv::{Conv1d, Conv1dConfig, Conv1dRecord},
+        conv::{Conv1d, Conv1dConfig},
         PaddingConfig1d,
     },
     tensor::{activation::softmax, backend::Backend, module::embedding, Distribution, Int, Tensor},
@@ -26,9 +32,7 @@ impl WhisperConfig {
 
         assert!(
             n_audio_state == n_text_state,
-            "Audio encoder state size {} must be equal to text decoder state size {}.",
-            n_audio_state,
-            n_text_state
+            "Audio encoder state size {n_audio_state} must be equal to text decoder state size {n_text_state}."
         );
 
         let encoder = self.audio_encoder_config.init();
@@ -45,10 +49,6 @@ pub struct Whisper<B: Backend> {
 }
 
 impl<B: Backend> Whisper<B> {
-    pub fn forward(&self, mel: Tensor<B, 3>, tokens: Tensor<B, 2, Int>) -> Tensor<B, 3> {
-        self.decoder.forward(tokens, self.encoder.forward(mel))
-    }
-
     pub fn forward_encoder(&self, mel: Tensor<B, 3>) -> Tensor<B, 3> {
         self.encoder.forward(mel)
     }
@@ -61,11 +61,11 @@ impl<B: Backend> Whisper<B> {
         self.decoder.forward(tokens, encoder_output)
     }
 
-    pub fn encoder_ctx_size(&self) -> usize {
+    pub const fn encoder_ctx_size(&self) -> usize {
         self.encoder.ctx_size()
     }
 
-    pub fn decoder_ctx_size(&self) -> usize {
+    pub const fn decoder_ctx_size(&self) -> usize {
         self.decoder.ctx_size()
     }
 }
@@ -88,7 +88,6 @@ impl TextDecoderConfig {
             Tensor::random([self.n_text_ctx, self.n_text_state], Distribution::Normal(0.0, 1.0))
                 .into();
         let blocks: Vec<_> = (0..self.n_text_layer)
-            .into_iter()
             .map(|_| {
                 ResidualDecoderAttentionBlockConfig::new(self.n_text_state, self.n_text_head).init()
             })
@@ -117,7 +116,7 @@ pub struct TextDecoder<B: Backend> {
 
 impl<B: Backend> TextDecoder<B> {
     fn forward(&self, x: Tensor<B, 2, Int>, xa: Tensor<B, 3>) -> Tensor<B, 3> {
-        let [n_batch, seq_len] = x.dims();
+        let [_n_batch, seq_len] = x.dims();
 
         assert!(
             seq_len <= self.n_text_ctx,
@@ -137,10 +136,10 @@ impl<B: Backend> TextDecoder<B> {
         }
 
         let x = self.ln.forward(x);
-        return x.matmul(self.token_embedding.val().transpose().unsqueeze::<3>());
+        x.matmul(self.token_embedding.val().transpose().unsqueeze::<3>())
     }
 
-    fn ctx_size(&self) -> usize {
+    const fn ctx_size(&self) -> usize {
         self.n_text_ctx
     }
 }
@@ -166,7 +165,6 @@ impl AudioEncoderConfig {
             .init();
         let gelu2 = nn::GELU::new();
         let blocks: Vec<_> = (0..self.n_audio_layer)
-            .into_iter()
             .map(|_| {
                 ResidualEncoderAttentionBlockConfig::new(self.n_audio_state, self.n_audio_head)
                     .init()
@@ -230,10 +228,10 @@ impl<B: Backend> AudioEncoder<B> {
             x = block.forward(x);
         }
 
-        return self.ln_post.forward(x);
+        self.ln_post.forward(x)
     }
 
-    fn ctx_size(&self) -> usize {
+    const fn ctx_size(&self) -> usize {
         self.n_audio_ctx
     }
 }
@@ -267,8 +265,7 @@ pub struct ResidualEncoderAttentionBlock<B: Backend> {
 impl<B: Backend> ResidualEncoderAttentionBlock<B> {
     fn forward(&self, x: Tensor<B, 3>) -> Tensor<B, 3> {
         let x = x.clone() + self.attn.forward(self.attn_ln.forward(x), None);
-        let x = x.clone() + self.mlp.forward(self.mlp_ln.forward(x));
-        return x;
+        x.clone() + self.mlp.forward(self.mlp_ln.forward(x))
     }
 }
 
@@ -307,8 +304,7 @@ impl<B: Backend> ResidualDecoderAttentionBlock<B> {
     fn forward(&self, x: Tensor<B, 3>, xa: Tensor<B, 3>, mask: Tensor<B, 2>) -> Tensor<B, 3> {
         let x = x.clone() + self.attn.forward(self.attn_ln.forward(x), Some(mask));
         let x = x.clone() + self.cross_attn.forward(self.cross_attn_ln.forward(x), xa);
-        let x = x.clone() + self.mlp.forward(self.mlp_ln.forward(x));
-        return x;
+        x.clone() + self.mlp.forward(self.mlp_ln.forward(x))
     }
 }
 
@@ -338,9 +334,7 @@ impl<B: Backend> MLP<B> {
     pub fn forward(&self, x: Tensor<B, 3>) -> Tensor<B, 3> {
         let x = self.lin1.forward(x);
         let x = self.gelu.forward(x);
-        let x = self.lin2.forward(x);
-
-        return x;
+        self.lin2.forward(x)
     }
 }
 
@@ -386,7 +380,7 @@ impl<B: Backend> MultiHeadSelfAttention<B> {
 
         let wv = qkv_attention(q, k, v, mask, self.n_head);
 
-        return self.out.forward(wv);
+        self.out.forward(wv)
     }
 }
 
@@ -432,7 +426,7 @@ impl<B: Backend> MultiHeadCrossAttention<B> {
 
         let wv = qkv_attention(q, k, v, None, self.n_head);
 
-        return self.out.forward(wv);
+        self.out.forward(wv)
     }
 }
 
@@ -464,9 +458,7 @@ pub fn qkv_attention<B: Backend>(
 
     // normalize value weightings
     let w = softmax(qk, 3);
-    let o = w.matmul(v).swap_dims(1, 2).flatten(2, 3);
-
-    return o;
+    w.matmul(v).swap_dims(1, 2).flatten(2, 3)
 }
 
 pub fn attn_decoder_mask<B: Backend>(seq_length: usize) -> Tensor<B, 2> {
@@ -477,5 +469,5 @@ pub fn attn_decoder_mask<B: Backend>(seq_length: usize) -> Tensor<B, 2> {
         mask = mask.slice_assign([i..i + 1, i + 1..seq_length], values);
     }
 
-    return mask;
+    mask
 }
