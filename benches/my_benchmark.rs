@@ -3,31 +3,28 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use whisper_comparison::whisper_cpp_wrapper::model::Size;
 use whisper_comparison::whisper_cpp_wrapper::AudioTranscripter;
 
-pub fn tiny_benchmark(c: &mut Criterion) {
-    benchmark(c, "tiny", Size::Tiny);
-}
-
-pub fn base_benchmark(c: &mut Criterion) {
-    benchmark(c, "base", Size::Base);
-}
-
-pub fn small_benchmark(c: &mut Criterion) {
-    benchmark(c, "small", Size::Small);
-}
-
-fn benchmark(c: &mut Criterion, id: &str, model: Size) {
+fn bench_whisper_cpp_wrapper(c: &mut Criterion) {
     let lang = None;
     let translate = false;
     let karaoke = false;
     let audio_file_path = "whisper_cpp_data/audio.wav";
-    let mut audio_transcripter = AudioTranscripter::new(model, lang, translate, karaoke).unwrap();
-    c.bench_function(id, |b| b.iter(|| audio_transcripter.transcript(audio_file_path)));
+    let mut group = c.benchmark_group("whisper_cpp_wrapper");
+    for (id, model) in [("tiny", Size::Tiny), ("base", Size::Base), ("small", Size::Small)] {
+        let mut audio_transcripter = None;
+        group.bench_function(id, |b| {
+            let audio_transcripter = audio_transcripter.get_or_insert_with(|| {
+                AudioTranscripter::new(model, lang, translate, karaoke).unwrap()
+            });
+            b.iter(|| audio_transcripter.transcript(audio_file_path))
+        });
+    }
+    group.finish();
 }
 
 criterion_group!(
     name = benches;
     config = Criterion::default().sample_size(10);
-    targets = tiny_benchmark, base_benchmark, small_benchmark
+    targets = bench_whisper_cpp_wrapper
 );
 
 criterion_main!(benches);

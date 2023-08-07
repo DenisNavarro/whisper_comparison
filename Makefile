@@ -16,9 +16,24 @@ debug_help : $(debug_exe_path) clippy.maketarget
 #############################################
 
 .PHONY: bench
-#: Launch benchmark
+#: Launch benchmark with whisper-rs (Rust bindings to whisper.cpp) with each model
 bench : clippy.maketarget whisper_cpp_data
 	cargo bench
+
+.PHONY: bench_base
+#: Launch benchmark with whisper-rs (Rust bindings to whisper.cpp) with the base model
+bench_base : clippy.maketarget whisper_cpp_data
+	cargo bench base
+
+.PHONY: bench_small
+#: Launch benchmark with whisper-rs (Rust bindings to whisper.cpp) with the small model
+bench_small : clippy.maketarget whisper_cpp_data
+	cargo bench small
+
+.PHONY: bench_tiny
+#: Launch benchmark with whisper-rs (Rust bindings to whisper.cpp) with the tiny model
+bench_tiny : clippy.maketarget whisper_cpp_data
+	cargo bench tiny
 
 .PHONY: clean
 #: Remove what is in .gitignore
@@ -94,7 +109,7 @@ clippy.maketarget : fmt.maketarget
 	cargo clippy -- -D warnings && touch $@
 
 #: Reformat the Rust files
-fmt.maketarget : rustfmt.toml $(wildcard src/*.rs) $(wildcard src/**/*.rs)
+fmt.maketarget : rustfmt.toml $(wildcard src/*.rs) $(wildcard src/**/*.rs) $(wildcard benches/*.rs)
 	cargo fmt && touch $@
 
 $(debug_exe_path) : Cargo.toml fmt.maketarget
