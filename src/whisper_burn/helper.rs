@@ -1,3 +1,7 @@
+//! Code adapted from <https://github.com/Gadersd/whisper-burn/blob/3757c15fd18fe2ec2c398cb6a4697e108442ff3a/src/helper.rs>
+//!
+//! The 3757c15fd18fe2ec2c398cb6a4697e108442ff3a commit was on 2023-07-30.
+
 use burn::tensor::{
     activation::relu, backend::Backend, BasicOps, Bool, Element, Float, Int, Numeric, Tensor,
     TensorKind,

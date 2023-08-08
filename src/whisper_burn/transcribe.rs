@@ -1,5 +1,9 @@
 #![allow(clippy::cast_precision_loss, clippy::range_plus_one)]
 
+//! Code adapted from <https://github.com/Gadersd/whisper-burn/blob/3757c15fd18fe2ec2c398cb6a4697e108442ff3a/src/transcribe.rs>
+//!
+//! The 3757c15fd18fe2ec2c398cb6a4697e108442ff3a commit was on 2023-07-30.
+
 use crate::whisper_burn::audio::{max_waveform_samples, prep_audio};
 use crate::whisper_burn::model::Whisper;
 use crate::whisper_burn::token::{self, Gpt2Tokenizer, SpecialToken};

@@ -39,9 +39,9 @@ fn main() -> anyhow::Result<()> {
 
 fn call_whisper_burn() {
     // Debug:
-    // thread 'main' panicked at 'attempt to subtract with overflow', src/whisper_burn/transcribe.rs:98:20
+    // thread 'main' panicked at 'attempt to subtract with overflow', src/whisper_burn/transcribe.rs:102:20
     // Release:
-    // thread 'main' panicked at 'slice index starts at 172409 but ends at 168511', src/whisper_burn/transcribe.rs:104:22
+    // thread 'main' panicked at 'slice index starts at 172409 but ends at 168511', src/whisper_burn/transcribe.rs:108:22
     crash("whisper_burn_data/audio.wav", "whisper_burn_data/tiny");
 }
 

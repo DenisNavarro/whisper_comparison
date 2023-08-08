@@ -1,3 +1,5 @@
+//! Code adapted from <https://github.com/m1guelpf/whisper-cli-rs/blob/v0.1.4/src/model.rs>
+
 use std::{fmt::Display, path::PathBuf};
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, clap::ValueEnum)]

@@ -1,3 +1,5 @@
+//! Code adapted from <https://github.com/m1guelpf/whisper-cli-rs/blob/v0.1.4/src/ffmpeg_decoder.rs>
+
 use anyhow::{anyhow, Result};
 use audrey::Reader;
 use std::env::temp_dir;

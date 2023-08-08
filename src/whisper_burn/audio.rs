@@ -1,5 +1,9 @@
 #![allow(clippy::cast_precision_loss, clippy::module_name_repetitions, clippy::range_plus_one)]
 
+//! Code adapted from <https://github.com/Gadersd/whisper-burn/blob/3757c15fd18fe2ec2c398cb6a4697e108442ff3a/src/audio.rs>
+//!
+//! The 3757c15fd18fe2ec2c398cb6a4697e108442ff3a commit was on 2023-07-30.
+
 use burn::tensor::{activation::relu, backend::Backend, Tensor};
 
 use crate::whisper_burn::helper::{

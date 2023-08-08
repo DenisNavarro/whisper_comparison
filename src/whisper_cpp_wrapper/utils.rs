@@ -1,3 +1,5 @@
+//! Code adapted from <https://github.com/m1guelpf/whisper-cli-rs/blob/v0.1.4/src/utils.rs>
+
 use num::integer::div_floor;
 use std::{fs::File, io::Write};
 

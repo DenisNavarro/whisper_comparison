@@ -1,4 +1,6 @@
-//! Module adapted from <https://github.com/Gadersd/whisper-burn/tree/3757c15fd18fe2ec2c398cb6a4697e108442ff3a>
+//! Code adapted from <https://github.com/Gadersd/whisper-burn/blob/3757c15fd18fe2ec2c398cb6a4697e108442ff3a/src/main.rs>
+//!
+//! The 3757c15fd18fe2ec2c398cb6a4697e108442ff3a commit was on 2023-07-30.
 
 mod audio;
 mod helper;

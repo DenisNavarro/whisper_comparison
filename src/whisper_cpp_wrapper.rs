@@ -1,4 +1,4 @@
-//! Module adapted from <https://github.com/m1guelpf/whisper-cli-rs/tree/v0.1.4>
+//! Code adapted from <https://github.com/m1guelpf/whisper-cli-rs/blob/v0.1.4/src/main.rs>
 
 mod ffmpeg_decoder;
 pub mod model;

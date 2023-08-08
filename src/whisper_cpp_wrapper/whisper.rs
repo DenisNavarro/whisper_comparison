@@ -1,3 +1,5 @@
+//! Code adapted from <https://github.com/m1guelpf/whisper-cli-rs/blob/v0.1.4/src/whisper.rs>
+
 use crate::whisper_cpp_wrapper::{
     ffmpeg_decoder,
     model::Model,

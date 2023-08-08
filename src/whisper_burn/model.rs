@@ -6,6 +6,10 @@
     clippy::upper_case_acronyms
 )]
 
+//! Code adapted from <https://github.com/Gadersd/whisper-burn/blob/3757c15fd18fe2ec2c398cb6a4697e108442ff3a/src/model.rs>
+//!
+//! The 3757c15fd18fe2ec2c398cb6a4697e108442ff3a commit was on 2023-07-30.
+
 use std::f32::NEG_INFINITY;
 
 use burn::{

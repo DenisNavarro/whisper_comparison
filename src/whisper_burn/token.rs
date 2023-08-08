@@ -1,5 +1,9 @@
 #![allow(clippy::cast_lossless, clippy::cast_possible_truncation, clippy::module_name_repetitions)]
 
+//! Code adapted from <https://github.com/Gadersd/whisper-burn/blob/3757c15fd18fe2ec2c398cb6a4697e108442ff3a/src/token.rs>
+//!
+//! The 3757c15fd18fe2ec2c398cb6a4697e108442ff3a commit was on 2023-07-30.
+
 use serde::ser::StdError;
 use std::result;
 
