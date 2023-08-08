@@ -1,13 +1,13 @@
 [package]
 name = "whisper_comparison"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 
 [dependencies]
 anyhow = { version = "1", features = ["backtrace"] }
 audrey = { version = "0.3", default-features = false, features = ["wav"] }
-burn = "0.8"
-burn-wgpu = "0.8"
+burn = { git = "https://github.com/burn-rs/burn.git" }
+burn-wgpu = { package = "burn-wgpu", git = "https://github.com/burn-rs/burn.git" }
 camino = "1"
 clap = { version = "4", features = ["derive"] }
 hound = "3"
