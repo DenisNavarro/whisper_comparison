@@ -4,13 +4,13 @@
 
 use clap::{Parser, Subcommand};
 
-use whisper_comparison::whisper_burn::crash;
+use whisper_comparison::whisper_burn;
 use whisper_comparison::whisper_cpp_wrapper::model::Size;
-use whisper_comparison::whisper_cpp_wrapper::{work, Args};
+use whisper_comparison::whisper_cpp_wrapper::{self, Args};
 
 #[derive(Parser)]
 enum Cli {
-    /// Call whisper_burn and crash
+    /// Call whisper_burn, but the output is not what is expected
     Burn,
 
     /// Call whisper_cpp_wrapper
@@ -38,11 +38,8 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn call_whisper_burn() {
-    // Debug:
-    // thread 'main' panicked at 'attempt to subtract with overflow', src/whisper_burn/transcribe.rs:102:20
-    // Release:
-    // thread 'main' panicked at 'slice index starts at 172409 but ends at 168511', src/whisper_burn/transcribe.rs:108:22
-    crash("whisper_burn_data/audio.wav", "whisper_burn_data/tiny");
+    // Transcribed text: ~~
+    whisper_burn::work("whisper_burn_data/audio.wav", "whisper_burn_data/tiny");
 }
 
 fn call_whisper_cpp_wrapper(model_name: Cpp) -> anyhow::Result<()> {
@@ -58,5 +55,5 @@ fn call_whisper_cpp_wrapper(model_name: Cpp) -> anyhow::Result<()> {
         translate: false,
         karaoke: false,
     };
-    work(args)
+    whisper_cpp_wrapper::work(args)
 }

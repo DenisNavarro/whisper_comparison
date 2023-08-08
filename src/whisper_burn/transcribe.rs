@@ -1,8 +1,8 @@
 #![allow(clippy::cast_precision_loss, clippy::range_plus_one)]
 
-//! Code adapted from <https://github.com/Gadersd/whisper-burn/blob/3757c15fd18fe2ec2c398cb6a4697e108442ff3a/src/transcribe.rs>
+//! Code adapted from <https://github.com/Gadersd/whisper-burn/blob/b61b3a8df533c5c17e575de3710bc4575cab94df/src/transcribe.rs>
 //!
-//! The 3757c15fd18fe2ec2c398cb6a4697e108442ff3a commit was on 2023-07-30.
+//! The b61b3a8df533c5c17e575de3710bc4575cab94df commit was on 2023-08-07.
 
 use crate::whisper_burn::audio::{max_waveform_samples, prep_audio};
 use crate::whisper_burn::model::Whisper;
@@ -96,10 +96,10 @@ fn waveform_to_mel_tensor<B: Backend>(
     window_length_samples: usize,
     device: B::Device,
 ) -> impl Iterator<Item = Tensor<B, 3>> {
-    let n_samples_per_tensor = window_length_samples;
     let chunk_overlap = sample_rate * 3;
-    let shift = n_samples_per_tensor - chunk_overlap;
-    let iter_len = (waveform.len() - n_samples_per_tensor) / shift + 1;
+    let n_samples_per_tensor = window_length_samples;
+    let shift = n_samples_per_tensor.saturating_sub(chunk_overlap).max(1);
+    let iter_len = waveform.len().saturating_sub(n_samples_per_tensor) / shift + 1;
 
     (0..iter_len).map(move |i| {
         let start = i * shift;

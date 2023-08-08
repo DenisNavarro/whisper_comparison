@@ -41,7 +41,7 @@ clean :
 	git clean -dXf
 
 .PHONY: debug_burn
-#: Debug execution with whisper-burn and crash
+#: Debug execution with whisper-burn, but the output is not what is expected
 debug_burn : $(debug_exe_path) clippy.maketarget whisper_burn_data
 	$< burn
 
@@ -73,7 +73,7 @@ help :
 	@remake --tasks
 
 .PHONY: release_burn
-#: Release execution with whisper-burn and crash
+#: Release execution with whisper-burn, but the output is not what is expected
 release_burn : $(release_exe_path) clippy.maketarget whisper_burn_data
 	$< burn
 

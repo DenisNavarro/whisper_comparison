@@ -46,7 +46,7 @@ fn load_whisper_model_file<B: Backend>(
 
 use std::process;
 
-pub fn crash(wav_file: &str, model_name: &str) {
+pub fn work(wav_file: &str, model_name: &str) {
     type Backend = WgpuBackend<AutoGraphicsApi, f32, i32>;
     let device = WgpuDevice::BestAvailable;
 
