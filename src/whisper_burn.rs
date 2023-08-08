@@ -1,6 +1,6 @@
-//! Code adapted from <https://github.com/Gadersd/whisper-burn/blob/3757c15fd18fe2ec2c398cb6a4697e108442ff3a/src/main.rs>
+//! Code adapted from <https://github.com/Gadersd/whisper-burn/blob/624fefdb0b3961463cc3a08c632c46d4a182d83a/src/main.rs>
 //!
-//! The 3757c15fd18fe2ec2c398cb6a4697e108442ff3a commit was on 2023-07-30.
+//! The 624fefdb0b3961463cc3a08c632c46d4a182d83a commit was on 2023-08-07.
 
 mod audio;
 mod helper;
@@ -15,21 +15,22 @@ use burn_wgpu::{AutoGraphicsApi, WgpuBackend, WgpuDevice};
 
 use burn::{config::Config, module::Module, tensor::backend::Backend};
 
-use hound;
+use hound::{self, SampleFormat};
 
+#[allow(clippy::cast_precision_loss)]
 fn load_audio_waveform(filename: &str) -> hound::Result<(Vec<f32>, usize)> {
-    type T = i16;
-
     let reader = hound::WavReader::open(filename)?;
     let spec = reader.spec();
-
     let sample_rate = spec.sample_rate as usize;
-
-    let floats = reader
-        .into_samples::<T>()
-        .map(|s| s.map(|s| f32::from(s) / f32::from(T::MAX)))
-        .collect::<hound::Result<_>>()?;
-
+    let sample_format = spec.sample_format;
+    let max_int_val = 2_u32.pow(u32::from(spec.bits_per_sample) - 1) - 1;
+    let floats = match sample_format {
+        SampleFormat::Float => reader.into_samples::<f32>().collect::<hound::Result<_>>()?,
+        SampleFormat::Int => reader
+            .into_samples::<i32>()
+            .map(|s| s.map(|s| s as f32 / max_int_val as f32))
+            .collect::<hound::Result<_>>()?,
+    };
     Ok((floats, sample_rate))
 }
 

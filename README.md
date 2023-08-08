@@ -12,7 +12,7 @@ sudo apt install libclang-dev  # required to compile the whisper-rs crate
 sudo apt install ffmpeg  # called by whisper_cpp_wrapper::ffmpeg_decoder::use_ffmpeg
 ```
 
-[whisper-rs][] works while [whisper-burn][], with the first commit of 2023-08-07,
+[whisper-rs][] works while [whisper-burn][], with the second commit of 2023-08-07,
 does not output what is expected.
 
 To execute the code, launch a phony target from the [Makefile][].
