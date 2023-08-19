@@ -2,8 +2,10 @@
 Comparing some Whisper implementations
 ======================================
 
-This project started as a technical test to compare the performances of two Whisper
-implementations: [whisper-burn][] and [whisper-rs][].
+**WARNING: this repository may become private in a near future.**
+
+This project started as a technical test in an interview process. It aims to compare
+the performances of two Whisper implementations: [whisper-burn][] and [whisper-rs][].
 
 The requirements on Ubuntu include:
 
